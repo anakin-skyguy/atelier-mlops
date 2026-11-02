@@ -1,0 +1,6 @@
+[core]
+    remote = github
+['remote "storage"']
+    url = ../../dvc-storage
+['remote "github"']
+    url = https://raw.githubusercontent.com/anakin-skyguy/atelier-mlops/dvc-storage
