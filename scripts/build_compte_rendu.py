@@ -1,5 +1,8 @@
 """
-Script de génération du compte-rendu professionnel PDF pour l'Atelier MLOps (Git + DVC + MLflow).
+Script de génération du Compte Rendu Officiel PDF complet pour l'Atelier Pratique MLOps
+(Intégration de Git + DVC + MLflow — Classification Iris & Wine).
+Inclut l'intégralité du code clé, des analyses, des 11 captures HD (thème clair 2x Retina)
+et des réponses détaillées aux questions de réflexion.
 Auteur : Mohamed Amine BELGUEROUANI
 """
 
@@ -13,7 +16,6 @@ from reportlab.platypus import (
     HRFlowable,
     Image,
     KeepTogether,
-    PageBreak,
     Paragraph,
     Preformatted,
     SimpleDocTemplate,
@@ -47,25 +49,26 @@ class NumberedCanvas(canvas.Canvas):
         if self._pageNumber > 1:
             self.setFont("Helvetica-Bold", 8)
             self.setFillColor(colors.HexColor("#1E3A8A"))
-            self.drawString(50, 804, "COMPTE RENDU — ATELIER PRATIQUE MLOPS : GIT + DVC + MLFLOW")
+            self.drawString(46, 806, "COMPTE RENDU — ATELIER PRATIQUE MLOPS : GIT + DVC + MLFLOW")
             self.setFont("Helvetica", 8)
             self.setFillColor(colors.HexColor("#64748B"))
-            self.drawRightString(545, 804, "MOHAMED AMINE BELGUEROUANI")
+            self.drawRightString(549, 806, "MOHAMED AMINE BELGUEROUANI")
             self.setStrokeColor(colors.HexColor("#CBD5E1"))
             self.setLineWidth(0.75)
-            self.line(50, 796, 545, 796)
+            self.line(46, 798, 549, 798)
 
         self.setStrokeColor(colors.HexColor("#E2E8F0"))
         self.setLineWidth(0.75)
-        self.line(50, 44, 545, 44)
+        self.line(46, 42, 549, 42)
         self.setFont("Helvetica", 8)
         self.setFillColor(colors.HexColor("#64748B"))
-        self.drawString(50, 31, "MLOps & Industrialisation du Machine Learning — github.com/anakin-skyguy/atelier-mlops")
-        self.drawRightString(545, 31, f"Page {self._pageNumber} sur {total_pages}")
+        self.drawString(46, 29, "MLOps & Industrialisation du Machine Learning — github.com/anakin-skyguy/atelier-mlops")
+        self.drawRightString(549, 29, f"Page {self._pageNumber} sur {total_pages}")
         self.restoreState()
 
 
-def get_scaled_image(path, max_width=485, max_height=255):
+def get_scaled_image(path, max_width=500, max_height=340, border=True):
+    """Charge et redimensionne proportionnellement une capture HD en conservant toute sa netteté."""
     if not os.path.exists(path):
         return None
     with PILImage.open(path) as img:
@@ -76,10 +79,29 @@ def get_scaled_image(path, max_width=485, max_height=255):
     if target_h > max_height:
         target_h = max_height
         target_w = target_h / aspect
-    return Image(path, width=target_w, height=target_h)
+    im = Image(path, width=target_w, height=target_h)
+    if not border:
+        return im
+    wrapper = Table([[im]], colWidths=[target_w + 4])
+    wrapper.setStyle(
+        TableStyle(
+            [
+                ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#CBD5E1")),
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+    wrapper.hAlign = "CENTER"
+    return wrapper
 
 
-def make_code_box(text, code_style, width=495):
+def make_code_box(text, code_style, width=503):
     t = Table([[Preformatted(text.strip(), code_style)]], colWidths=[width])
     t.setStyle(
         TableStyle(
@@ -88,8 +110,8 @@ def make_code_box(text, code_style, width=495):
                 ("BOX", (0, 0), (-1, -1), 0.75, colors.HexColor("#CBD5E1")),
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
             ]
         )
     )
@@ -106,8 +128,8 @@ def styled_table(rows, col_widths, primary_color):
                 ("BOX", (0, 0), (-1, -1), 0.75, colors.HexColor("#CBD5E1")),
                 ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4.5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
                 ("LEFTPADDING", (0, 0), (-1, -1), 6),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 6),
             ]
@@ -116,14 +138,20 @@ def styled_table(rows, col_widths, primary_color):
     return t
 
 
+def add_figure(story, screenshots_dir, filename, caption_text, caption_style, max_w=500, max_h=330, border=True):
+    flow_img = get_scaled_image(os.path.join(screenshots_dir, filename), max_width=max_w, max_height=max_h, border=border)
+    if flow_img:
+        story.append(KeepTogether([Spacer(1, 4), flow_img, Paragraph(caption_text, caption_style)]))
+
+
 def generate_pdf(output_pdf_path, screenshots_dir):
     doc = SimpleDocTemplate(
         output_pdf_path,
         pagesize=A4,
-        leftMargin=50,
-        rightMargin=50,
-        topMargin=52,
-        bottomMargin=54,
+        leftMargin=46,
+        rightMargin=46,
+        topMargin=50,
+        bottomMargin=50,
     )
 
     styles = getSampleStyleSheet()
@@ -134,12 +162,12 @@ def generate_pdf(output_pdf_path, screenshots_dir):
 
     title_style = ParagraphStyle("DocTitle", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=19, leading=24, textColor=primary, spaceAfter=4)
     subtitle_style = ParagraphStyle("DocSub", parent=styles["Normal"], fontName="Helvetica", fontSize=11, leading=15, textColor=secondary, spaceAfter=10)
-    h1 = ParagraphStyle("H1", parent=styles["Heading1"], fontName="Helvetica-Bold", fontSize=13, leading=17, textColor=primary, spaceBefore=14, spaceAfter=6, keepWithNext=True)
-    h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=10.5, leading=14, textColor=secondary, spaceBefore=10, spaceAfter=4, keepWithNext=True)
+    h1 = ParagraphStyle("H1", parent=styles["Heading1"], fontName="Helvetica-Bold", fontSize=13, leading=17, textColor=primary, spaceBefore=13, spaceAfter=5, keepWithNext=True)
+    h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=10.5, leading=14, textColor=secondary, spaceBefore=9, spaceAfter=4, keepWithNext=True)
     body = ParagraphStyle("Body", parent=styles["Normal"], fontName="Helvetica", fontSize=9.2, leading=13, textColor=dark, spaceAfter=5)
     bullet = ParagraphStyle("Bullet", parent=body, leftIndent=14, firstLineIndent=-10, spaceAfter=3)
-    caption = ParagraphStyle("Caption", parent=styles["Normal"], fontName="Helvetica-Oblique", fontSize=8.3, leading=11, textColor=gray, alignment=1, spaceBefore=3, spaceAfter=9)
-    code_style = ParagraphStyle("Code", parent=styles["Normal"], fontName="Courier", fontSize=7.1, leading=9.8, textColor=colors.HexColor("#1E293B"))
+    caption = ParagraphStyle("Caption", parent=styles["Normal"], fontName="Helvetica-Oblique", fontSize=8.3, leading=11, textColor=gray, alignment=1, spaceBefore=4, spaceAfter=9)
+    code_style = ParagraphStyle("Code", parent=styles["Normal"], fontName="Courier", fontSize=7.4, leading=10.0, textColor=colors.HexColor("#1E293B"))
     th = ParagraphStyle("TH", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=8.2, leading=10.5, textColor=colors.white, alignment=1)
     tc = ParagraphStyle("TC", parent=styles["Normal"], fontName="Helvetica", fontSize=8, leading=10.5, textColor=dark)
     tcc = ParagraphStyle("TCC", parent=tc, alignment=1)
@@ -147,18 +175,20 @@ def generate_pdf(output_pdf_path, screenshots_dir):
 
     story = []
 
-    # En-tête principal
+    # =========================================================================
+    # CARTOUCHE D'IDENTIFICATION
+    # =========================================================================
     story.append(Paragraph("Compte Rendu — Atelier Pratique MLOps", title_style))
-    story.append(Paragraph("Intégration de Git + DVC + MLflow dans un Workflow Reproductible (Classification Iris & Wine)", subtitle_style))
+    story.append(Paragraph("Intégration de Git + DVC + MLflow dans un Workflow Reproductible (Classification Iris &amp; Wine)", subtitle_style))
     story.append(HRFlowable(width="100%", thickness=2, color=primary, spaceBefore=0, spaceAfter=10))
 
     info_data = [
         [Paragraph("<b>Étudiant :</b> Mohamed Amine BELGUEROUANI", body), Paragraph("<b>Date :</b> 02 Novembre 2026", body)],
-        [Paragraph("<b>Matière :</b> MLOps &amp; Cycle de Vie ML", body), Paragraph("<b>Datasets :</b> Iris (150 lignes) &amp; Wine (178 lignes)", body)],
-        [Paragraph("<b>Stack :</b> Python 3.12, Git 2.52, DVC 3.67, MLflow 3.17", body), Paragraph("<b>Backend MLflow :</b> SQLite (<code>sqlite:///mlflow.db</code>)", body)],
-        [Paragraph("<b>Dépôt GitHub :</b> <code>https://github.com/anakin-skyguy/atelier-mlops</code>", body), Paragraph("<b>Tests &amp; CI :</b> Pytest (4/4 passés) + GitHub Actions", body)],
+        [Paragraph("<b>Matière :</b> MLOps &amp; Industrialisation ML", body), Paragraph("<b>Datasets :</b> Iris (150 lignes) &amp; Wine (178 lignes)", body)],
+        [Paragraph("<b>Outils :</b> Python 3.12, Git 2.52, DVC 3.67, MLflow 3.17", body), Paragraph("<b>Backend MLflow :</b> SQLite (<code>sqlite:///mlflow.db</code>)", body)],
+        [Paragraph("<b>Repository GitHub :</b> <code>https://github.com/anakin-skyguy/atelier-mlops</code>", body), Paragraph("<b>Validation :</b> Pytest (4/4 passés) + Clone isolé HTTPS", body)],
     ]
-    info_table = Table(info_data, colWidths=[265, 230])
+    info_table = Table(info_data, colWidths=[275, 228])
     info_table.setStyle(
         TableStyle(
             [
@@ -173,15 +203,17 @@ def generate_pdf(output_pdf_path, screenshots_dir):
         )
     )
     story.append(info_table)
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
-    # 1. Architecture
+    # =========================================================================
+    # SECTION 1 : ARCHITECTURE GÉNÉRALE
+    # =========================================================================
     story.append(Paragraph("1. Architecture Générale et Complémentarité Git + DVC + MLflow", h1))
     story.append(
         Paragraph(
-            "Un système de Machine Learning industrialisable dépend simultanément du <b>code source</b>, des <b>données</b> et des "
-            "<b>hyperparamètres d'entraînement</b>. Cet atelier assemble trois outils spécialisés afin d'assurer une traçabilité "
-            "et une reproductibilité de bout en bout :",
+            "Contrairement au développement logiciel classique où seul le code détermine le comportement du programme, un modèle de "
+            "Machine Learning dépend conjointement du <b>code source</b>, des <b>jeux de données</b> et des <b>hyperparamètres</b>. "
+            "Cet atelier intègre trois briques complémentaires pour garantir traçabilité et reproductibilité :",
             body,
         )
     )
@@ -196,83 +228,99 @@ def generate_pdf(output_pdf_path, screenshots_dir):
         [Paragraph("Suivi des artefacts modèles", tcb), Paragraph("Exclus (.gitignore)", tcc), Paragraph("Oui (sorties outs:)", tcc), Paragraph("Oui (log_artifact)", tcc)],
         [Paragraph("Comparaison visuelle des runs", tcb), Paragraph("Non", tcc), Paragraph("Comparaison CLI", tcc), Paragraph("Oui (UI &amp; graphiques)", tcc)],
     ]
-    story.append(styled_table(arch_rows, [145, 115, 115, 120], primary))
-    story.append(Spacer(1, 6))
+    story.append(styled_table(arch_rows, [148, 118, 118, 119], primary))
 
-    # 2. TP 1 - Git
+    # =========================================================================
+    # SECTION 2 : TP 1 — GIT & GITHUB
+    # =========================================================================
     story.append(Paragraph("2. TP 1 — Gestion du Code Source avec Git et Publication GitHub", h1))
     story.append(
         Paragraph(
-            "Le dépôt a été structuré autour des branches <code>main</code> (versions stables publiées) et <code>develop</code> "
-            "(intégration continue des travaux), avec <b>13 commits atomiques</b> signés sous l'identité de l'étudiant et jalonnés par "
-            "trois tags annotés (<code>v1.0</code>, <code>v2.0</code>, <code>v3.0</code>).",
+            "Le dépôt Git a été structuré autour des branches <code>main</code> (versions stables publiées) et <code>develop</code> "
+            "(intégration progressive), jalonné par <b>14 commits atomiques</b> et trois tags sémantiques annotés : "
+            "<code>v1.0</code> (Random Forest 100 arbres), <code>v2.0</code> (Random Forest 200 arbres) et <code>v3.0</code> (pipeline complet RF + KNN + tests + CI).",
             body,
         )
     )
     story.append(
         Paragraph(
-            "• <b>Configuration .gitignore adaptée à DVC :</b> Exclusion de <code>__pycache__/</code>, <code>.venv/</code>, <code>mlruns/</code> "
-            "et <code>mlflow.db</code>, tout en laissant DVC administrer <code>data/raw/.gitignore</code> et <code>models/.gitignore</code>.",
+            "• <b>Configuration .gitignore &amp; .gitattributes :</b> Exclusion de <code>mlruns/</code>, <code>mlflow.db</code>, <code>.venv/</code> "
+            "et <code>__pycache__/</code> tout en déléguant <code>models/.gitignore</code> à DVC. L'ajout de <code>* text=auto eol=lf</code> dans "
+            "<code>.gitattributes</code> garantit des empreintes MD5 identiques entre Windows et Linux.",
             bullet,
         )
     )
     story.append(
         Paragraph(
-            "• <b>Normalisation inter-plateformes (.gitattributes) :</b> L'ajout de <code>* text=auto eol=lf</code> dès l'initialisation évite "
-            "toute divergence d'empreinte MD5 des dépendances Python entre Windows (CRLF) et Linux Ubuntu (LF) lors de <code>dvc status</code>.",
+            "• <b>Réponse à la question préliminaire (p. 3) :</b> Stocker directement des datasets volumineux dans Git duplique chaque révision dans "
+            "<code>.git/objects</code>, ralentit fortement <code>git clone</code>, dépasse la limite de 100 Mo/fichier sur GitHub et produit des diffs illisibles.",
             bullet,
         )
     )
 
-    git_log_text = """6a24c86 (HEAD -> main, tag: v3.0, develop) Documentation complete, captures MLflow UI haute resolution et README
-9208786 Extension CI: Ajout des tests qualite donnees/modeles et workflow GitHub Actions
-95f77fa TP3 & TP4: Ajout du modele KNN au pipeline DVC et suivi MLflow
-adee5f3 TP2: Restauration de la version initiale du dataset Wine (178 lignes)
-621a49e TP2: Modification du dataset Wine (echantillon de 100 lignes)
-2b6ae97 TP2: Versioning du second dataset Wine (178 lignes) avec DVC
-2691ffb (tag: v2.0) Experience Random Forest avec 200 arbres et max_depth=8
-a54cbbb (tag: v1.0) Ajout du pipeline MLOps integre DVC et MLflow (Random Forest 100 arbres)
-60bf79c Configuration des remotes DVC (local storage et distant HTTPS)
-aad8dde Versioning du dataset Iris avec DVC
-0559893 Initialisation de DVC
-0a6e156 Ajout du script de preparation du second dataset (Wine)
-a635cc1 Initialisation du projet Iris"""
-    story.append(make_code_box(git_log_text, code_style))
-    story.append(Spacer(1, 6))
+    add_figure(
+        story,
+        screenshots_dir,
+        "01_github_repository.png",
+        "Figure 1 — Dépôt GitHub publié (https://github.com/anakin-skyguy/atelier-mlops) : branches main/develop, 3 tags (v1.0, v2.0, v3.0) et arborescence MLOps sans fichiers binaires ni CSV.",
+        caption,
+        max_w=500,
+        max_h=305,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "02_git_branches_tags_log.png",
+        "Figure 2 — Vérification CLI Git : dépôt distant GitHub, branches locales/distantes, tags annotés (v1.0, v2.0, v3.0) et graphe complet des commits.",
+        caption,
+        max_w=500,
+        max_h=270,
+        border=False,
+    )
 
-    # 3. TP 2 - DVC Data Versioning
-    story.append(Paragraph("3. TP 2 — Versioning des Données, Remotes DVC et Restauration", h1))
+    # =========================================================================
+    # SECTION 3 : TP 2 — DVC DATA VERSIONING & ROLLBACK
+    # =========================================================================
+    story.append(Paragraph("3. TP 2 — Versioning des Données avec DVC, Remotes et Restauration", h1))
     story.append(
         Paragraph(
-            "Deux jeux de données tabulaires ont été générés de façon déterministe et placés sous suivi DVC :",
+            "Conformément au TP 2, deux datasets distincts ont été versionnés avec <code>dvc add</code> : le dataset principal "
+            "<b>Iris</b> (<code>data/raw/iris.csv</code>, 150 lignes) et le second dataset <b>Wine</b> (<code>data/raw/wine.csv</code>, 178 lignes). "
+            "Deux remotes sont configurés dans <code>.dvc/config</code> : <code>storage</code> (<code>../dvc-storage</code> local) et "
+            "<code>github</code> (remote HTTPS par défaut adossé à la branche orpheline dédiée <code>dvc-storage</code> permettant un "
+            "<code>dvc pull</code> immédiat sur toute machine externe).",
             body,
         )
     )
-    story.append(Paragraph("• <b>Dataset principal Iris (<code>data/raw/iris.csv</code>) :</b> 150 lignes, 5 colonnes — MD5 <code>4d301abed5efe50eccda350cde38e0eb</code> (2 778 octets).", bullet))
-    story.append(Paragraph("• <b>Second dataset Wine (<code>data/raw/wine.csv</code>) :</b> 178 lignes, 14 colonnes — MD5 <code>2925c4a8cd201c79d97d3d283429ef23</code> (10 962 octets).", bullet))
     story.append(
         Paragraph(
-            "• <b>Double Remote DVC (Local + HTTPS universel) :</b> Outre le remote local <code>storage</code> (<code>../dvc-storage</code>), "
-            "un remote HTTPS par défaut <code>github</code> pointe vers la branche orpheline dédiée <code>dvc-storage</code> hébergeant uniquement "
-            "le cache adressé par contenu (<code>files/md5/...</code>). Ainsi, <code>dvc pull</code> fonctionne immédiatement sur toute machine tierce et dans GitHub Actions.",
-            bullet,
-        )
-    )
-    story.append(
-        Paragraph(
-            "• <b>Expérience d'altération et restauration (TP 2.7) :</b> Après réduction de <code>wine.csv</code> à 100 lignes et commit du nouveau "
-            "pointeur <code>wine.csv.dvc</code>, l'exécution de <code>git checkout HEAD~1 -- data/raw/wine.csv.dvc</code> suivie de "
-            "<code>dvc checkout</code> a restauré intégralement les <b>178 lignes</b> avec une correspondance MD5 bit-à-bit exacte.",
-            bullet,
+            "<b>Expérience de modification et restauration (TP 2 — Q7) :</b> Le dataset <code>wine.csv</code> a été réduit de 178 à 100 lignes "
+            "(MD5 modifié de <code>2925c4a8...</code> vers <code>cc50fa13...</code>), puis restauré via "
+            "<code>git checkout HEAD~1 -- data/raw/wine.csv.dvc &amp;&amp; dvc checkout</code>, rétablissant exactement les 178 lignes et le MD5 d'origine.",
+            body,
         )
     )
 
-    # 4. TP 3 - MLflow Tracking & Screenshots
-    story.append(Paragraph("4. TP 3 — Suivi et Comparaison des Expérimentations avec MLflow", h1))
+    add_figure(
+        story,
+        screenshots_dir,
+        "03_dvc_remotes_and_wine_rollback.png",
+        "Figure 3 — Versioning DVC des datasets Iris et Wine : configuration des remotes, contenu des pointeurs .dvc et vérification par hachage MD5 de la restauration de wine.csv (178 → 100 → 178 lignes).",
+        caption,
+        max_w=500,
+        max_h=245,
+        border=False,
+    )
+
+    # =========================================================================
+    # SECTION 4 : TP 3 — MLFLOW TRACKING & SCREENSHOTS HD
+    # =========================================================================
+    story.append(Paragraph("4. TP 3 — Suivi et Comparaison des Expérimentations dans MLflow UI", h1))
     story.append(
         Paragraph(
-            "Les entraînements sont enregistrés dans <code>sqlite:///mlflow.db</code> sous l'expérience <code>TP_Iris_Classification</code> "
-            "(découpage stratifié identique : <code>test_size=0.2</code> soit 120 train / 30 test, <code>random_state=42</code>) :",
+            "Le serveur de suivi MLflow s'appuie sur le backend relationnel SQLite (<code>sqlite:///mlflow.db</code>) au sein de l'expérience "
+            "<code>TP_Iris_Classification</code>. Trois expérimentations ont été conduites sur le même découpage stratifié "
+            "(<code>test_size=0.2</code> soit 120 observations d'entraînement et 30 de test, <code>random_state=42</code>) :",
             body,
         )
     )
@@ -280,8 +328,8 @@ a635cc1 Initialisation du projet Iris"""
     res_rows = [
         [
             Paragraph("Tag Git", th),
-            Paragraph("Run MLflow", th),
-            Paragraph("Algorithme &amp; Hyperparamètres", th),
+            Paragraph("Nom du Run MLflow", th),
+            Paragraph("Modèle &amp; Hyperparamètres", th),
             Paragraph("Accuracy", th),
             Paragraph("Precision", th),
             Paragraph("Recall", th),
@@ -290,7 +338,7 @@ a635cc1 Initialisation du projet Iris"""
         [
             Paragraph("<b>v1.0</b>", tcc),
             Paragraph("<code>RandomForest_n100_d5</code>", tc),
-            Paragraph("Random Forest (n=100, depth=5)", tc),
+            Paragraph("Random Forest (n=100, max_depth=5)", tc),
             Paragraph("<b>0.9333</b>", tcc),
             Paragraph("<b>0.9333</b>", tcc),
             Paragraph("<b>0.9333</b>", tcc),
@@ -299,7 +347,7 @@ a635cc1 Initialisation du projet Iris"""
         [
             Paragraph("<b>v2.0</b>", tcc),
             Paragraph("<code>RandomForest_n200_d8</code>", tc),
-            Paragraph("Random Forest (n=200, depth=8)", tc),
+            Paragraph("Random Forest (n=200, max_depth=8)", tc),
             Paragraph("0.9000", tcc),
             Paragraph("0.9024", tcc),
             Paragraph("0.9000", tcc),
@@ -308,144 +356,215 @@ a635cc1 Initialisation du projet Iris"""
         [
             Paragraph("<b>v3.0</b>", tcc),
             Paragraph("<code>KNN_k5</code>", tc),
-            Paragraph("K-Nearest Neighbors (k=5)", tc),
+            Paragraph("K-Nearest Neighbors (n_neighbors=5)", tc),
             Paragraph("<b>1.0000</b>", tcc),
             Paragraph("<b>1.0000</b>", tcc),
             Paragraph("<b>1.0000</b>", tcc),
             Paragraph("<b>1.0000</b>", tcc),
         ],
     ]
-    story.append(styled_table(res_rows, [45, 115, 135, 50, 50, 50, 50], primary))
-    story.append(Spacer(1, 5))
+    story.append(styled_table(res_rows, [44, 118, 141, 50, 50, 50, 50], primary))
+    story.append(Spacer(1, 4))
     story.append(
         Paragraph(
-            "<b>Interprétation :</b> Passer de 100 à 200 arbres (<code>max_depth</code> 5 → 8) dégrade l'accuracy de <code>0.9333</code> (28/30) "
-            "à <code>0.9000</code> (27/30) par sur-ajustement sur un petit échantillon d'apprentissage (120 individus). Le classifieur "
-            "<code>KNN_k5</code> obtient <code>1.0000</code> (30/30) grâce à la régularité géométrique des classes d'Iris, mais sur 30 individus "
-            "de test (1 erreur = 3,33 %), une validation croisée stratifiée resterait nécessaire pour confirmer cet écart.",
+            "<b>Analyse comparative :</b> L'augmentation de complexité du Random Forest entre <code>v1.0</code> (100 arbres, profondeur 5) et "
+            "<code>v2.0</code> (200 arbres, profondeur 8) réduit l'accuracy de <code>0.9333</code> (28/30) à <code>0.9000</code> (27/30), illustrant un "
+            "léger sur-ajustement aux frontières locales du jeu d'apprentissage. Le modèle <code>KNN_k5</code> atteint <code>1.0000</code> (30/30) sur ce "
+            "pli de test grâce à la forte séparabilité géométrique des pétales/sépales ; compte tenu de la taille modeste du test (30 individus, soit "
+            "3,33 % par erreur), une validation croisée stratifiée serait requise en production pour confirmer cet avantage.",
             body,
         )
     )
 
-    shots = [
-        ("01_experiment_runs_list.png", "Figure 1 — Interface MLflow UI : tableau des runs de l'expérience TP_Iris_Classification avec métriques et hyperparamètres.", 225),
-        ("03_compare_runs_metrics_table.png", "Figure 2 — Module Compare Runs de MLflow : graphique en coordonnées parallèles et tableau comparatif côte à côte des 3 modèles.", 330),
-        ("04_run_rf100_detail.png", "Figure 3 — Fiche détaillée du run RandomForest_n100_d5 (v1.0 : Accuracy = 0.9333, F1 = 0.9333).", 225),
-        ("05_run_knn_detail.png", "Figure 4 — Fiche détaillée du run KNN_k5 (v3.0 : n_neighbors = 5, Accuracy = 1.0000).", 225),
-        ("06_run_artifacts_model.png", "Figure 5 — Onglet Artifacts dans MLflow UI confirmant l'enregistrement du modèle sérialisé (dossier model/).", 200),
-    ]
-    for fname, cap_txt, max_h in shots:
-        img = get_scaled_image(os.path.join(screenshots_dir, fname), max_width=485, max_height=max_h)
-        if img:
-            story.append(KeepTogether([Spacer(1, 4), img, Paragraph(cap_txt, caption)]))
+    add_figure(
+        story,
+        screenshots_dir,
+        "04_mlflow_runs_table.png",
+        "Figure 4 — Interface MLflow UI (mode Model training) : liste des 3 runs de TP_Iris_Classification affichant l'ensemble des métriques (accuracy, f1_score, precision, recall) et des hyperparamètres.",
+        caption,
+        max_w=500,
+        max_h=175,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "05_mlflow_compare_chart.png",
+        "Figure 5 — Comparaison visuelle des 3 runs dans MLflow UI : graphique en coordonnées parallèles reliant max_depth, type de modèle, n_estimators et accuracy.",
+        caption,
+        max_w=500,
+        max_h=215,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "06_mlflow_compare_table.png",
+        "Figure 6 — Tableau comparatif côte à côte dans MLflow UI : détails d'exécution, différences d'hyperparamètres surlignées et métriques complètes des 3 modèles.",
+        caption,
+        max_w=475,
+        max_h=375,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "07_mlflow_run_rf100.png",
+        "Figure 7 — Fiche détaillée du run RandomForest_n100_d5 (tag v1.0 : Accuracy = 0.9333, n_estimators = 100, max_depth = 5).",
+        caption,
+        max_w=495,
+        max_h=305,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "08_mlflow_run_rf200.png",
+        "Figure 8 — Fiche détaillée du run RandomForest_n200_d8 (tag v2.0 : Accuracy = 0.9000, F1 = 0.8997, n_estimators = 200, max_depth = 8).",
+        caption,
+        max_w=495,
+        max_h=305,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "09_mlflow_run_knn.png",
+        "Figure 9 — Fiche détaillée du run KNN_k5 (tag v3.0 : Accuracy = 1.0000, n_neighbors = 5, random_state = 42, test_size = 0.2).",
+        caption,
+        max_w=495,
+        max_h=295,
+    )
+    add_figure(
+        story,
+        screenshots_dir,
+        "11_mlflow_artifacts_model_pkl.png",
+        "Figure 10 — Onglet Artifacts dans MLflow UI : arborescence model/ dépliée confirmant l'enregistrement de l'artefact binaire model.pkl.",
+        caption,
+        max_w=495,
+        max_h=185,
+    )
 
-    # 5. TP 4 - Pipeline DVC, Reproductibilité & CI
+    # =========================================================================
+    # SECTION 5 : TP 4 — PIPELINE DVC, REPRODUCTIBILITÉ & CI/CD
+    # =========================================================================
     story.append(Paragraph("5. TP 4 — Pipeline Intégré DVC, Reproductibilité et Extension CI/CD", h1))
     story.append(
         Paragraph(
-            "Le fichier déclaratif <code>dvc.yaml</code> orchestre les deux stages d'entraînement (<code>train</code> et <code>train_knn</code>) "
-            "à partir de <code>data/raw/iris.csv</code> et <code>params.yaml</code>, tandis que <code>dvc.lock</code> fige les empreintes MD5 résolues :",
+            "Les fichiers <code>params.yaml</code> et <code>dvc.yaml</code> définissent de manière déclarative les deux stages du pipeline "
+            "(<code>train</code> pour Random Forest et <code>train_knn</code> pour KNN), tandis que <code>dvc.lock</code> fige les hachages MD5 exacts "
+            "de chaque entrée et sortie :",
             body,
         )
     )
-    dag_text = """$ dvc dag
-  +-----------------------+
-  | data\\raw\\iris.csv.dvc |
-  +-----------------------+
-         **        **
-       **            **
-      *                *
-+-------+         +-----------+
-| train |         | train_knn |
-+-------+         +-----------+
 
-$ dvc metrics diff v1.0 v2.0
-Path                  Metric     v1.0     v2.0     Change
-reports\\metrics.json  accuracy   0.93333  0.9      -0.03333
-reports\\metrics.json  f1_score   0.93333  0.89975  -0.03358"""
-    story.append(make_code_box(dag_text, code_style))
-    story.append(Spacer(1, 5))
+    dvc_configs_code = """# params.yaml
+train:
+  n_estimators: 200
+  max_depth: 8
+  random_state: 42
+  test_size: 0.2
+knn:
+  n_neighbors: 5
 
-    story.append(Paragraph("5.1. Vérification de restauration et test sur environnement vierge isolé", h2))
+# dvc.yaml
+stages:
+  train:
+    cmd: python src/train.py
+    deps: [src/train.py, data/raw/iris.csv]
+    params: [train.n_estimators, train.max_depth, train.random_state, train.test_size]
+    outs: [models/model.pkl]
+    metrics:
+      - reports/metrics.json: {cache: false}
+  train_knn:
+    cmd: python src/train_knn.py
+    deps: [src/train_knn.py, data/raw/iris.csv]
+    params: [train.random_state, train.test_size, knn.n_neighbors]
+    outs: [models/knn_model.pkl]
+    metrics:
+      - reports/metrics_knn.json: {cache: false}"""
+    story.append(make_code_box(dvc_configs_code, code_style))
+    story.append(Spacer(1, 4))
+
     story.append(
         Paragraph(
-            "Un test de bout en bout a été conduit dans un répertoire isolé hors du projet (sans accès à <code>../dvc-storage</code>) : "
-            "après <code>git clone https://github.com/anakin-skyguy/atelier-mlops.git</code>, la commande <code>dvc pull</code> télécharge "
-            "automatiquement les 4 artefacts via HTTPS (<code>iris.csv</code>, <code>wine.csv</code>, <code>model.pkl</code>, <code>knn_model.pkl</code>). "
-            "Sur <code>main</code> comme après restauration de <code>v1.0</code> (<code>n=100, d=5</code>), <code>v2.0</code> (<code>n=200, d=8</code>) "
-            "et <code>v3.0</code>, <code>dvc status</code> renvoie systématiquement <i>« Data and pipelines are up to date »</i>.",
+            "<b>Restauration multi-versions, reproductibilité sur machine isolée et tests CI (Section 12) :</b> "
+            "La restauration de <code>v1.0</code> (<code>git checkout v1.0 &amp;&amp; dvc checkout</code>) rétablit instantanément le modèle à "
+            "100 arbres (<code>accuracy = 0.93333</code>). En outre, un clone complet exécuté dans un répertoire vierge isolé hors du projet "
+            "(sans dossier <code>../dvc-storage</code>) télécharge automatiquement les 4 fichiers suivis via <code>dvc pull</code> (HTTPS), valide "
+            "<code>dvc repro</code> et passe <b>4/4 tests Pytest</b> (qualité de <code>iris.csv</code> et <code>wine.csv</code>, cohérence pipeline, "
+            "inférence des modèles et seuils d'acceptation <code>accuracy &amp; f1_score &gt;= 0.85</code>).",
             body,
         )
     )
 
-    story.append(Paragraph("5.2. Contrôles qualité automatisés (Pytest) et GitHub Actions", h2))
-    story.append(
-        Paragraph(
-            "Conformément aux recommandations de la Section 12, le fichier <code>tests/test_mlops.py</code> et le workflow "
-            "<code>.github/workflows/mlops.yml</code> automatisent <code>dvc pull</code>, <code>dvc repro</code>, <code>dvc metrics show</code> "
-            "et 4 tests unitaires/qualité (intégrité de <code>iris.csv</code> et <code>wine.csv</code>, cohérence de <code>params.yaml</code>/<code>dvc.lock</code>, "
-            "inférence des modèles <code>.pkl</code> et respect du seuil d'acceptation <code>accuracy &amp; f1_score &gt;= 0.85</code> — <b>4 passed</b>).",
-            body,
-        )
+    add_figure(
+        story,
+        screenshots_dir,
+        "10_dvc_dag_rollback_pytest.png",
+        "Figure 11 — Exécution du pipeline intégré : graphe dvc dag, comparaison CLI v1.0 vs v2.0, démonstration de rollback vers v1.0 et validation Pytest (4 passed).",
+        caption,
+        max_w=500,
+        max_h=385,
+        border=False,
     )
 
-    # 6. Questions de réflexion
+    # =========================================================================
+    # SECTION 6 : QUESTIONS DE RÉFLEXION (Q15 À Q22)
+    # =========================================================================
     story.append(Paragraph("6. Réponses aux Questions de Réflexion (Section 16)", h1))
     qa = [
         (
             "Q15. Quelle est la différence entre Git et DVC ?",
-            "Git versionne le code source et les fichiers texte légers de configuration (.py, .yaml, .dvc, dvc.lock). DVC versionne les datasets volumineux et les binaires de modèles en stockant leur contenu dans un cache adressé par hachage MD5 (synchronisé avec un remote local ou cloud) et fournit un moteur de pipeline reproductible.",
+            "Git est un système de contrôle de versions conçu pour le code source et les fichiers texte légers (.py, .yaml, .dvc, dvc.lock). DVC étend Git aux données volumineuses et aux modèles binaires en stockant leur contenu réel dans un cache adressé par empreinte MD5 (synchronisé avec un remote local ou cloud) tout en orchestrant l'exécution reproductible du pipeline.",
         ),
         (
             "Q16. Pourquoi éviter de stocker un dataset volumineux directement dans Git ?",
-            "Chaque révision d'un fichier massif alourdit définitivement l'historique .git de tous les clones, ralentit les opérations réseau (clone/fetch), dépasse les limites des plateformes (100 Mo/fichier sur GitHub) et produit des diffs textuels inutilisables.",
+            "Chaque modification d'un fichier lourd est dupliquée dans l'historique .git de tous les collaborateurs, ce qui alourdit définitivement le dépôt, ralentit les opérations réseau (clone, fetch, push), dépasse les quotas des plateformes (limite de 100 Mo par fichier sur GitHub) et produit des diffs textuels inexploitables.",
         ),
         (
             "Q17. Quelle est la différence entre dvc add et dvc repro ?",
-            "dvc add enregistre un fichier statique existant (comme un dataset brut) dans le cache DVC et génère un pointeur .dvc sans exécuter de code. dvc repro parcourt le graphe de stages défini dans dvc.yaml, compare les empreintes des entrées/paramètres à dvc.lock, ne ré-exécute que les étapes modifiées et met à jour dvc.lock.",
+            "dvc add place un fichier statique existant (comme un dataset brut) sous suivi DVC en calculant son MD5 et en créant un fichier .dvc sans exécuter de traitement. dvc repro parcourt le graphe de dépendances défini dans dvc.yaml, compare les empreintes courantes des entrées et paramètres à dvc.lock, ne relance que les étapes modifiées et met à jour dvc.lock.",
         ),
         (
             "Q18. Quel est le rôle du fichier dvc.lock ?",
-            "dvc.lock capture l'état exact résolu d'une exécution du pipeline : commandes, valeurs des hyperparamètres, tailles et empreintes MD5 de toutes les dépendances et sorties. Suivi par Git, il lie chaque commit à une version unique et vérifiable des données et des modèles.",
+            "dvc.lock fige l'état exact résolu d'une exécution du pipeline : commandes lancées, valeurs effectives des hyperparamètres, tailles et hachages MD5 de toutes les dépendances (deps) et sorties (outs). Versionné dans Git, il associe de manière déterministe et vérifiable chaque commit à une version unique des données et des modèles.",
         ),
         (
             "Q19. Comment MLflow permet-il de comparer deux expérimentations ?",
-            "MLflow enregistre dans son Backend Store (sqlite:///mlflow.db) les paramètres, métriques et artefacts de chaque run. Sa vue Compare aligne côte à côte les hyperparamètres différents, les métriques et trace des graphiques comparatifs (coordonnées parallèles, scatter/box plots), complétée par l'API mlflow.search_runs().",
+            "Chaque exécution enregistrée dans le Backend Store (sqlite:///mlflow.db) conserve ses hyperparamètres, ses métriques et ses artefacts. La vue Compare de MLflow UI aligne côte à côte plusieurs runs en mettant en évidence les paramètres modifiés (Show diff only), compare les métriques et génère des graphiques interactifs (coordonnées parallèles, scatter/box plots), complétée par mlflow.search_runs().",
         ),
         (
             "Q20. Comment retrouver les données et le modèle associés à un commit Git précis ?",
-            "Il suffit d'exécuter <code>git checkout &lt;commit_ou_tag&gt;</code> (qui restaure <code>dvc.lock</code> et les fichiers <code>.dvc</code> de cet instant), puis <code>dvc checkout</code> (ou <code>dvc pull</code> si les objets sont absents du cache local) pour matérialiser exactement les fichiers de données et le modèle binaire correspondants.",
+            "En deux étapes : (1) exécuter <code>git checkout &lt;commit_ou_tag&gt;</code> (ex. <code>git checkout v1.0</code>) pour restaurer le code, <code>params.yaml</code>, <code>dvc.lock</code> et les fichiers <code>.dvc</code> de cet instant ; (2) exécuter <code>dvc checkout</code> (ou <code>dvc pull</code> si absent du cache local) afin de matérialiser exactement les datasets et le fichier modèle correspondants.",
         ),
         (
             "Q21. Pourquoi la reproductibilité est-elle importante dans un projet d'intelligence artificielle ?",
-            "Parce qu'un modèle dépend conjointement du code, des données, des hyperparamètres et de l'aléa numérique. La reproductibilité garantit la rigueur expérimentale (isoler l'effet d'un changement), l'auditabilité réglementaire, le rollback rapide en cas de régression en production et la collaboration fiable en équipe.",
+            "Un modèle d'IA dépend simultanément du code, des données, du prétraitement, des hyperparamètres et des graines aléatoires. La reproductibilité est indispensable pour valider scientifiquement l'impact d'une modification, garantir l'auditabilité et la traçabilité en production, effectuer un rollback fiable vers une version stable (v1.0) et collaborer sans écarts entre machines.",
         ),
         (
             "Q22. Quelle est la différence entre le versioning des modèles avec DVC et leur suivi avec MLflow ?",
-            "DVC versionne le fichier physique du modèle comme sortie déterministe du pipeline couplée à un commit Git (orienté reproductibilité et restauration). MLflow journalise l'ensemble des runs exploratoires avec leurs métriques, graphiques et états dans le Model Registry (orienté analyse expérimentale et gouvernance du cycle de vie). Les deux outils sont complémentaires.",
+            "DVC versionne le fichier physique du modèle (models/model.pkl) comme sortie déterministe du pipeline liée à un commit Git précis (orienté restauration et CI/CD). MLflow assure le suivi analytique de toutes les expérimentations (y compris exploratoires), la visualisation comparative des métriques et la gouvernance du cycle de vie via le Model Registry. Les deux outils sont donc complémentaires.",
         ),
     ]
     for q_title, q_ans in qa:
         story.append(KeepTogether([Paragraph(f"<b>{q_title}</b>", h2), Paragraph(q_ans, body)]))
 
-    # 7. Récapitulatif des livrables (Section 17) & Conclusion
-    story.append(Paragraph("7. Récapitulatif des Livrables Attendus (Section 17) et Conclusion", h1))
+    # =========================================================================
+    # SECTION 7 : SYNTHÈSE DES LIVRABLES & CONCLUSION
+    # =========================================================================
+    story.append(Paragraph("7. Synthèse de Vérification des Livrables (Section 17) et Conclusion", h1))
     liv_rows = [
-        [Paragraph("Livrable attendu", th), Paragraph("Emplacement / Référence vérifiée", th), Paragraph("Statut", th)],
-        [Paragraph("Lien du repository GitHub", tcb), Paragraph("<code>https://github.com/anakin-skyguy/atelier-mlops</code> (main, develop, v1.0–v3.0)", tc), Paragraph("<b>Validé</b>", tcc)],
-        [Paragraph("Configurations DVC", tcb), Paragraph("<code>.dvc/config</code>, <code>data/raw/*.dvc</code>, <code>dvc.yaml</code>, <code>dvc.lock</code>", tc), Paragraph("<b>Validé</b>", tcc)],
-        [Paragraph("Code Python &amp; Paramètres", tcb), Paragraph("<code>src/prepare_*.py</code>, <code>src/train.py</code>, <code>src/train_knn.py</code>, <code>params.yaml</code>", tc), Paragraph("<b>Validé</b>", tcc)],
-        [Paragraph("Captures de l'interface MLflow", tcb), Paragraph("6 captures HD dans <code>docs/screenshots/</code> et intégrées aux Figures 1 à 5", tc), Paragraph("<b>Validé</b>", tcc)],
-        [Paragraph("Comparaison d'expérimentations", tcb), Paragraph("RF v1.0 (0.9333) vs RF v2.0 (0.9000) vs KNN k=5 (1.0000) — Section 4", tc), Paragraph("<b>Validé</b>", tcc)],
-        [Paragraph("Restauration &amp; Reproductibilité", tcb), Paragraph("Rollback Wine MD5 + Rollback v1.0/v2.0 + Clone isolé HTTPS + Pytest 4/4", tc), Paragraph("<b>Validé</b>", tcc)],
+        [Paragraph("Livrable attendu (Grille /20)", th), Paragraph("Preuve &amp; Référence dans ce rapport", th), Paragraph("Statut", th)],
+        [Paragraph("Git &amp; Repository GitHub (3 pts)", tcb), Paragraph("<code>github.com/anakin-skyguy/atelier-mlops</code> — Figures 1 &amp; 2 (main, develop, v1.0–v3.0)", tc), Paragraph("<b>Complet</b>", tcc)],
+        [Paragraph("Versioning données DVC (4 pts)", tcb), Paragraph("<code>iris.csv.dvc</code>, <code>wine.csv.dvc</code>, double remote &amp; rollback MD5 — Figure 3", tc), Paragraph("<b>Complet</b>", tcc)],
+        [Paragraph("Tracking MLflow UI (4 pts)", tcb), Paragraph("RF v1.0, RF v2.0 &amp; KNN k=5 comparés + artefacts — Figures 4 à 10", tc), Paragraph("<b>Complet</b>", tcc)],
+        [Paragraph("Pipeline intégré DVC (4 pts)", tcb), Paragraph("<code>dvc.yaml</code>, <code>dvc.lock</code>, <code>params.yaml</code>, <code>dvc dag</code> — Section 5 &amp; Figure 11", tc), Paragraph("<b>Complet</b>", tcc)],
+        [Paragraph("Reproductibilité &amp; Versions (3 pts)", tcb), Paragraph("Rollback v1.0, clone vierge HTTPS, Pytest 4/4 &amp; GitHub Actions — Figure 11", tc), Paragraph("<b>Complet</b>", tcc)],
+        [Paragraph("Documentation &amp; Réflexion (2 pts)", tcb), Paragraph("README complet + Réponses détaillées aux questions Q15 à Q22 — Section 6", tc), Paragraph("<b>Complet</b>", tcc)],
     ]
-    story.append(styled_table(liv_rows, [135, 300, 60], primary))
-    story.append(Spacer(1, 6))
+    story.append(styled_table(liv_rows, [145, 298, 60], primary))
+    story.append(Spacer(1, 5))
     story.append(
         Paragraph(
-            "<b>Conclusion :</b> L'intégration conjointe de <b>Git</b> (code et pointeurs), <b>DVC</b> (données volumineuses, modèles et pipeline "
-            "déterministe) et <b>MLflow</b> (suivi analytique des expérimentations) transforme un simple script d'entraînement Scikit-learn en "
-            "un véritable pipeline MLOps industrialisable, traçable, auditable et intégralement reproductible sur n'importe quel environnement.",
+            "<b>Conclusion :</b> L'articulation de <b>Git</b> (versioning du code et des pointeurs), <b>DVC</b> (versioning des données et modèles, "
+            "orchestration déterministe du pipeline) et <b>MLflow</b> (tracking analytique et comparaison visuelle des runs) permet de transformer un "
+            "prototype Scikit-learn en un workflow MLOps rigoureux, auditable et intégralement reproductible.",
             body,
         )
     )

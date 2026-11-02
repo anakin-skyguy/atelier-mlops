@@ -38,7 +38,8 @@ atelier-mlops/
 │   ├── metrics.json                  # Métriques Random Forest suivies par DVC
 │   └── metrics_knn.json              # Métriques KNN suivies par DVC
 ├── scripts/
-│   └── capture_mlflow.py             # Script reproductible de capture de l'interface MLflow UI
+│   ├── capture_all_screenshots.py    # Capture automatisée 2x Retina (thème clair) de toutes les preuves
+│   └── build_compte_rendu.py         # Génération du Compte Rendu officiel PDF (10 pages)
 ├── src/
 │   ├── prepare_data.py               # Génération déterministe de data/raw/iris.csv
 │   ├── prepare_wine.py               # Génération déterministe de data/raw/wine.csv (TP 2)
@@ -109,12 +110,17 @@ Découpage stratifié identique pour toutes les expériences : `test_size = 0.2`
 
 | Fichier | Description |
 | :--- | :--- |
-| `01_experiment_runs_list.png` | Vue d'ensemble des runs de `TP_Iris_Classification` avec colonnes de métriques et paramètres |
-| `02_compare_runs.png` | Graphique en coordonnées parallèles comparant les 3 expérimentations |
-| `03_compare_runs_metrics_table.png` | Tableau comparatif complet côte à côte (Détails, Paramètres et Métriques) |
-| `04_run_rf100_detail.png` | Fiche détaillée du run `RandomForest_n100_d5` (`v1.0`) |
-| `05_run_knn_detail.png` | Fiche détaillée du run `KNN_k5` (`v3.0`) |
-| `06_run_artifacts_model.png` | Onglet Artifacts confirmant l'enregistrement du binaire `model/model.pkl` |
+| `01_github_repository.png` | Dépôt GitHub publié (`main`, `develop`, tags `v1.0`–`v3.0`, 14+ commits) |
+| `02_git_branches_tags_log.png` | Vérification CLI Git : remotes, branches, tags annotés et graphe des commits |
+| `03_dvc_remotes_and_wine_rollback.png` | Remotes DVC, fichiers `.dvc` et restauration MD5 de `wine.csv` (TP 2) |
+| `04_mlflow_runs_table.png` | Tableau des runs `TP_Iris_Classification` en thème clair avec métriques et paramètres |
+| `05_mlflow_compare_chart.png` | Graphique en coordonnées parallèles comparant les 3 expérimentations |
+| `06_mlflow_compare_table.png` | Tableau comparatif côte à côte (Détails, Paramètres et Métriques) |
+| `07_mlflow_run_rf100.png` | Fiche détaillée du run `RandomForest_n100_d5` (`v1.0`) |
+| `08_mlflow_run_rf200.png` | Fiche détaillée du run `RandomForest_n200_d8` (`v2.0`) |
+| `09_mlflow_run_knn.png` | Fiche détaillée du run `KNN_k5` (`v3.0`) |
+| `10_dvc_dag_rollback_pytest.png` | Graphe `dvc dag`, `dvc diff v1.0 v2.0`, rollback `v1.0` et `pytest -v` (4/4 passés) |
+| `11_mlflow_artifacts_model_pkl.png` | Onglet Artifacts déplié confirmant l'enregistrement de `model/model.pkl` |
 
 ---
 
