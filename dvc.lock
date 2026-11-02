@@ -26,3 +26,28 @@ stages:
       hash: md5
       md5: 8a6e1fa3cfa769291ea5a460e0904245
       size: 116
+  train_knn:
+    cmd: python src/train_knn.py
+    deps:
+    - path: data/raw/iris.csv
+      hash: md5
+      md5: 4d301abed5efe50eccda350cde38e0eb
+      size: 2777
+    - path: src/train_knn.py
+      hash: md5
+      md5: a0c2d6431b74050e95892858ae604473
+      size: 2018
+    params:
+      params.yaml:
+        knn.n_neighbors: 5
+        train.random_state: 42
+        train.test_size: 0.2
+    outs:
+    - path: models/knn_model.pkl
+      hash: md5
+      md5: 314a0aec8dfb531ee68eab5cd182b3b0
+      size: 11622
+    - path: reports/metrics_knn.json
+      hash: md5
+      md5: eda2288834efe506f3bb671136f88570
+      size: 86

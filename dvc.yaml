@@ -14,3 +14,17 @@ stages:
     metrics:
       - reports/metrics.json:
           cache: false
+  train_knn:
+    cmd: python src/train_knn.py
+    deps:
+      - src/train_knn.py
+      - data/raw/iris.csv
+    params:
+      - train.random_state
+      - train.test_size
+      - knn.n_neighbors
+    outs:
+      - models/knn_model.pkl
+    metrics:
+      - reports/metrics_knn.json:
+          cache: false
