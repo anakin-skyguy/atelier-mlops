@@ -25,6 +25,24 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Enregistrement des polices TrueType systeme pour rendu Unicode 100% parfait
+font_dir = "C:/Windows/Fonts"
+pdfmetrics.registerFont(TTFont("Arial", f"{font_dir}/arial.ttf"))
+pdfmetrics.registerFont(TTFont("Arial-Bold", f"{font_dir}/arialbd.ttf"))
+pdfmetrics.registerFont(TTFont("Arial-Italic", f"{font_dir}/ariali.ttf"))
+pdfmetrics.registerFont(TTFont("Arial-BoldItalic", f"{font_dir}/arialbi.ttf"))
+pdfmetrics.registerFont(TTFont("Consolas", f"{font_dir}/consola.ttf"))
+pdfmetrics.registerFont(TTFont("Consolas-Bold", f"{font_dir}/consolab.ttf"))
+
+pdfmetrics.registerFontFamily("Arial", normal="Arial", bold="Arial-Bold", italic="Arial-Italic", boldItalic="Arial-BoldItalic")
+pdfmetrics.registerFontFamily("Consolas", normal="Consolas", bold="Consolas-Bold")
+pdfmetrics.registerFont(TTFont("Courier", f"{font_dir}/consola.ttf"))
+pdfmetrics.registerFont(TTFont("Courier-Bold", f"{font_dir}/consolab.ttf"))
+pdfmetrics.registerFontFamily("Courier", normal="Courier", bold="Courier-Bold")
+
 
 class NumberedCanvas(canvas.Canvas):
     """En-tête et pied de page avec numérotation 'Page X sur Y'."""
@@ -48,10 +66,10 @@ class NumberedCanvas(canvas.Canvas):
     def draw_page_decorations(self, total_pages):
         self.saveState()
         if self._pageNumber > 1:
-            self.setFont("Helvetica-Bold", 8)
+            self.setFont("Arial-Bold", 8)
             self.setFillColor(colors.HexColor("#1E3A8A"))
             self.drawString(44, 806, "DOSSIER UNIQUE DES LIVRABLES — ATELIER MLOPS : GIT + DVC + MLFLOW")
-            self.setFont("Helvetica", 8)
+            self.setFont("Arial", 8)
             self.setFillColor(colors.HexColor("#64748B"))
             self.drawRightString(551, 806, "MOHAMED AMINE BELGUEROUANI")
             self.setStrokeColor(colors.HexColor("#CBD5E1"))
@@ -61,7 +79,7 @@ class NumberedCanvas(canvas.Canvas):
         self.setStrokeColor(colors.HexColor("#E2E8F0"))
         self.setLineWidth(0.75)
         self.line(44, 42, 551, 42)
-        self.setFont("Helvetica", 8)
+        self.setFont("Arial", 8)
         self.setFillColor(colors.HexColor("#64748B"))
         self.drawString(44, 29, "Repository GitHub : https://github.com/anakin-skyguy/atelier-mlops")
         self.drawRightString(551, 29, f"Page {self._pageNumber} sur {total_pages}")
@@ -197,19 +215,19 @@ def generate_pdf(output_pdf_path, repo_root):
     dark = colors.HexColor("#0F172A")
     gray = colors.HexColor("#475569")
 
-    title_style = ParagraphStyle("DocTitle", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=18.5, leading=23, textColor=primary, spaceAfter=3)
-    subtitle_style = ParagraphStyle("DocSub", parent=styles["Normal"], fontName="Helvetica", fontSize=10.8, leading=14.5, textColor=secondary, spaceAfter=9)
-    h1 = ParagraphStyle("H1", parent=styles["Heading1"], fontName="Helvetica-Bold", fontSize=12.8, leading=16.5, textColor=primary, spaceBefore=12, spaceAfter=5, keepWithNext=True)
-    h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=10.3, leading=13.8, textColor=secondary, spaceBefore=8, spaceAfter=3.5, keepWithNext=True)
-    body = ParagraphStyle("Body", parent=styles["Normal"], fontName="Helvetica", fontSize=9.1, leading=12.8, textColor=dark, spaceAfter=4.5)
+    title_style = ParagraphStyle("DocTitle", parent=styles["Normal"], fontName="Arial-Bold", fontSize=18.5, leading=23, textColor=primary, spaceAfter=3)
+    subtitle_style = ParagraphStyle("DocSub", parent=styles["Normal"], fontName="Arial", fontSize=10.8, leading=14.5, textColor=secondary, spaceAfter=9)
+    h1 = ParagraphStyle("H1", parent=styles["Heading1"], fontName="Arial-Bold", fontSize=12.8, leading=16.5, textColor=primary, spaceBefore=12, spaceAfter=5, keepWithNext=True)
+    h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontName="Arial-Bold", fontSize=10.3, leading=13.8, textColor=secondary, spaceBefore=8, spaceAfter=3.5, keepWithNext=True)
+    body = ParagraphStyle("Body", parent=styles["Normal"], fontName="Arial", fontSize=9.1, leading=12.8, textColor=dark, spaceAfter=4.5)
     bullet = ParagraphStyle("Bullet", parent=body, leftIndent=14, firstLineIndent=-10, spaceAfter=3)
-    caption = ParagraphStyle("Caption", parent=styles["Normal"], fontName="Helvetica-Oblique", fontSize=8.2, leading=10.8, textColor=gray, alignment=1, spaceBefore=3.5, spaceAfter=8)
-    label_style = ParagraphStyle("FileLabel", parent=styles["Normal"], fontName="Helvetica", fontSize=8.3, leading=10.5, textColor=primary)
-    code_style = ParagraphStyle("Code", parent=styles["Normal"], fontName="Courier", fontSize=7.2, leading=9.5, textColor=colors.HexColor("#0F172A"))
-    th = ParagraphStyle("TH", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=8.1, leading=10.5, textColor=colors.white, alignment=1)
-    tc = ParagraphStyle("TC", parent=styles["Normal"], fontName="Helvetica", fontSize=8.0, leading=10.5, textColor=dark)
+    caption = ParagraphStyle("Caption", parent=styles["Normal"], fontName="Arial-Italic", fontSize=8.2, leading=10.8, textColor=gray, alignment=1, spaceBefore=3.5, spaceAfter=8)
+    label_style = ParagraphStyle("FileLabel", parent=styles["Normal"], fontName="Arial", fontSize=8.3, leading=10.5, textColor=primary)
+    code_style = ParagraphStyle("Code", parent=styles["Normal"], fontName="Consolas", fontSize=7.2, leading=9.5, textColor=colors.HexColor("#0F172A"))
+    th = ParagraphStyle("TH", parent=styles["Normal"], fontName="Arial-Bold", fontSize=8.1, leading=10.5, textColor=colors.white, alignment=1)
+    tc = ParagraphStyle("TC", parent=styles["Normal"], fontName="Arial", fontSize=8.0, leading=10.5, textColor=dark)
     tcc = ParagraphStyle("TCC", parent=tc, alignment=1)
-    tcb = ParagraphStyle("TCB", parent=tc, fontName="Helvetica-Bold")
+    tcb = ParagraphStyle("TCB", parent=tc, fontName="Arial-Bold")
 
     story = []
 
